@@ -1,0 +1,59 @@
+version: '3.8'
+# This is a Docker Compose file for the vprofile project.
+# It defines the services and their configurations.
+services:
+  vprodb:
+    build:
+      context: ./Docker-files/db
+      dockerfile: Dockerfile
+    image: vprofile-db:latest
+    container_name: vprodb
+    ports:
+      - "3306:3306"
+    volumes:
+      - vprodb_data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=vprodbpass
+      - MYSQL_DATABASE=accounts
+  vprocache01:
+    image: memcached
+    container_name: vprocache01
+    ports:
+      - "11211:11211"
+  vpromq01:
+    image: rabbitmq:3-management
+    container_name: vpromq01
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+  vproapp:
+    build:
+      context: ./
+      dockerfile: ./Docker-files/app/Dockerfile
+    image: vprofile-app:latest
+    container_name: vproapp
+    ports:
+      - "8080:8080"
+    # volumes:
+    #   # - vproapp_data:/usr/local/tomcat/webapps
+    depends_on:
+      - vprodb
+      - vprocache01
+      - vpromq01
+  vproweb:
+    build:
+      context: ./Docker-files/web
+      dockerfile: Dockerfile
+    image: vprofile-web:latest
+    container_name: vproweb
+    ports:
+      - "80:80"
+    depends_on:
+      - vproapp
+
+volumes:
+  vprodb_data:  {}
+#   # vproapp_data: {}
