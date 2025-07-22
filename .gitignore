@@ -102,3 +102,4 @@ kubernetes/vpro-app/app-secret.yaml
 # Backup files
 *.old
 *.orig
+.vagrant/
